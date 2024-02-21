@@ -1,0 +1,12 @@
+mqtt:
+  broker_address: localhost
+  port: 1883
+  topic: "your/topic"
+  client_id: "your_client_id"
+  username: "your_username"
+  password: "your_password"
+
+ble:
+  device_address: "48:31:B7:C0:35:0B"
+  service_uuid: "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+  characteristic_uuid: "beb5483e-36e1-4688-b7f5-ea07361b26a8"
