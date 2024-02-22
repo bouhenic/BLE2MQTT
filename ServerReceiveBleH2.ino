@@ -1,85 +1,125 @@
 #include <BLEDevice.h>
-#include <BLEUtils.h>
 #include <BLEServer.h>
+#include <BLEUtils.h>
 #include <BLE2902.h>
+#include "esp_system.h"
+
+BLEServer* pServer = NULL;
+BLECharacteristic* pSensorCharacteristic = NULL;
+BLECharacteristic* pLedCharacteristic = NULL;
+bool deviceConnected = false;
+bool oldDeviceConnected = false;
+uint32_t value = 0;
+
+const int ledPin = 2; // Use the appropriate GPIO pin for your setup
+
+// See the following for generating UUIDs:
+// https://www.uuidgenerator.net/
 
 #define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
-#define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
-
-bool shouldAdvertise = true; // Indicateur pour contrôler la publicité
+#define SENSOR_CHARACTERISTIC_UUID "beb5483d-36e1-4688-b7f5-ea07361b26a8"
+#define LED_CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 
 class MyServerCallbacks: public BLEServerCallbacks {
-    void onConnect(BLEServer* pServer) override {
-        Serial.println("Client Connected");
-        shouldAdvertise = false; // Arrêter la publicité lorsqu'un client est connecté
-    }
+    void onConnect(BLEServer* pServer) {
+      deviceConnected = true;
+    };
 
-    void onDisconnect(BLEServer* pServer) override {
-        Serial.println("Client Disconnected");
-        shouldAdvertise = true; // Indiquer que la publicité doit être redémarrée
+    void onDisconnect(BLEServer* pServer) {
+      deviceConnected = false;
     }
 };
 
-class MyCallbacks: public BLECharacteristicCallbacks {
-    void onWrite(BLECharacteristic *pCharacteristic) override {
-        auto value = pCharacteristic->getValue();
+class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
+    void onWrite(BLECharacteristic* pLedCharacteristic) {
+        auto value = pLedCharacteristic->getValue();
+        if (value.length() > 0) {
+            Serial.print("Characteristic event, written: ");
+            Serial.println(static_cast<int>(value[0])); // Print the integer value
 
-        Serial.print("Received Value: ");
-        for (size_t i = 0; i < value.length(); i++) {
-            Serial.print((char)value[i]);
-        }
-        Serial.println();
-
-        if (value == "arrosage") {
-            Serial.println("Activating pin 2 for irrigation!");
-            digitalWrite(2, HIGH);
-        } else if (value == "stop") {
-            Serial.println("Deactivating pin 2.");
-            digitalWrite(2, LOW);
-        } else {
-            Serial.println("Bad order");
+            int receivedValue = static_cast<int>(value[0]);
+            if (receivedValue == 1) {
+                digitalWrite(ledPin, HIGH);
+            } else {
+                digitalWrite(ledPin, LOW);
+            }
         }
     }
 };
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("Starting BLE work!");
+  pinMode(ledPin, OUTPUT);
 
-  pinMode(2, OUTPUT); // Configure le pin 2 comme sortie
-  digitalWrite(2, LOW); // Initialise le pin 2 à l'état bas
-
+  // Create the BLE Device
   BLEDevice::init("MyBleDevice");
-  BLEServer *pServer = BLEDevice::createServer();
-  pServer->setCallbacks(new MyServerCallbacks()); // Enregistrer les callbacks de serveur
 
+  // Create the BLE Server
+  pServer = BLEDevice::createServer();
+  pServer->setCallbacks(new MyServerCallbacks());
+
+  // Create the BLE Service
   BLEService *pService = pServer->createService(SERVICE_UUID);
-  BLECharacteristic *pCharacteristic = pService->createCharacteristic(
-                                          CHARACTERISTIC_UUID,
-                                          BLECharacteristic::PROPERTY_READ |
-                                          BLECharacteristic::PROPERTY_WRITE);
 
-  pCharacteristic->setCallbacks(new MyCallbacks());
-  pCharacteristic->setValue("Hello World says Neil");
-  pCharacteristic->addDescriptor(new BLE2902());
+  // Create a BLE Characteristic
+  pSensorCharacteristic = pService->createCharacteristic(
+                      SENSOR_CHARACTERISTIC_UUID,
+                      BLECharacteristic::PROPERTY_READ   |
+                      BLECharacteristic::PROPERTY_WRITE  |
+                      BLECharacteristic::PROPERTY_NOTIFY |
+                      BLECharacteristic::PROPERTY_INDICATE
+                    );
 
+  // Create the ON button Characteristic
+  pLedCharacteristic = pService->createCharacteristic(
+                      LED_CHARACTERISTIC_UUID,
+                      BLECharacteristic::PROPERTY_WRITE
+                    );
+
+  // Register the callback for the ON button characteristic
+  pLedCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
+
+  // https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.descriptor.gatt.client_characteristic_configuration.xml
+  // Create a BLE Descriptor
+  pSensorCharacteristic->addDescriptor(new BLE2902());
+  pLedCharacteristic->addDescriptor(new BLE2902());
+
+  // Start the service
   pService->start();
 
+  // Start advertising
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);
-  pAdvertising->setScanResponse(true);
+  pAdvertising->setScanResponse(false);
+  pAdvertising->setMinPreferred(0x0);  // set value to 0x00 to not advertise this parameter
   BLEDevice::startAdvertising();
-  Serial.println("Characteristic defined! Now you can read it in your phone!");
+  Serial.println("Waiting a client connection to notify...");
 }
 
 void loop() {
-  // Vérifie si la publicité doit être redémarrée
-  if (shouldAdvertise) {
-      BLEDevice::startAdvertising(); // Redémarre directement la publicité
-      Serial.println("Restarting advertising...");
-  }
-  delay(1000); // Attente passive et laisse les callbacks BLE gérer les données.
+    if (!deviceConnected && oldDeviceConnected) {
+    Serial.println("Device disconnected. Preparing for restart.");
+    delay(1000); // Délai pour permettre la fin de toutes les opérations en cours
+    esp_restart(); // Redémarre l'ESP32
+}
+    if (deviceConnected && !oldDeviceConnected) {
+        Serial.println("Device Connected");
+        oldDeviceConnected = deviceConnected;
+    }
 }
 
+// Déplacez la configuration initiale du BLE dans une fonction appelée `setupBLE()`
+void setupBLE() {
+    BLEDevice::init("MyBleDevice");
+    pServer = BLEDevice::createServer();
+    pServer->setCallbacks(new MyServerCallbacks());
+
+    BLEService *pService = pServer->createService(SERVICE_UUID);
+    // Ajoutez les caractéristiques et les descripteurs comme dans `setup()`
+    // ...
+    pService->start();
+    BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+    pAdvertising->start();
+}
 
 
