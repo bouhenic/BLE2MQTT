@@ -3,5 +3,6 @@ The project includes:
 - The Arduino code for the BLE device.
 - The code for a BLE2MQTT gateway in Python.
 
-![Exemple PlantUML](https://www.plantuml.com/plantuml/uml/SoWkIImgAStDuNBAJrBGjQjGSCp9J4w5yb0uABmO94vCZ2uIJrzV5yQ5Qin7aiq7AaQHja6nnGQXsY4rBmNaBW00"Diagramme PlantUML")
+![Exemple PlantUML](https://www.plantuml.com/plantuml/img/SoWkIImgAStDuKhEIImkLd1EBEBYjLbAJ4vLi5BpKeXA5A2K0000 "Diagramme PlantUML")
+
 
