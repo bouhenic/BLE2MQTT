@@ -11,7 +11,7 @@ bool deviceConnected = false;
 bool oldDeviceConnected = false;
 uint32_t value = 0;
 
-const int ledPin = 2; // Use the appropriate GPIO pin for your setup
+const int ledPin = 2; // Pin carte relais
 
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
@@ -35,7 +35,7 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
         auto value = pLedCharacteristic->getValue();
         if (value.length() > 0) {
             Serial.print("Characteristic event, written: ");
-            Serial.println(static_cast<int>(value[0])); // Print the integer value
+            Serial.println(static_cast<int>(value[0])); 
 
             int receivedValue = static_cast<int>(value[0]);
             if (receivedValue == 1) {
@@ -51,17 +51,17 @@ void setup() {
   Serial.begin(115200);
   pinMode(ledPin, OUTPUT);
 
-  // Create the BLE Device
+  // Creation du BLE Device
   BLEDevice::init("MyBleDevice");
 
-  // Create the BLE Server
+  // Creation du BLE Serveur
   pServer = BLEDevice::createServer();
   pServer->setCallbacks(new MyServerCallbacks());
 
-  // Create the BLE Service
+  // Creation du BLE Service
   BLEService *pService = pServer->createService(SERVICE_UUID);
 
-  // Create a BLE Characteristic
+  // Creation du BLE Characteristic sensor
   pSensorCharacteristic = pService->createCharacteristic(
                       SENSOR_CHARACTERISTIC_UUID,
                       BLECharacteristic::PROPERTY_READ   |
@@ -70,13 +70,13 @@ void setup() {
                       BLECharacteristic::PROPERTY_INDICATE
                     );
 
-  // Create the ON button Characteristic
+  // Creation du BLE Characteristic Relais
   pLedCharacteristic = pService->createCharacteristic(
                       LED_CHARACTERISTIC_UUID,
                       BLECharacteristic::PROPERTY_WRITE
                     );
 
-  // Register the callback for the ON button characteristic
+  // Déclararion du callback 
   pLedCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
 
   // https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.descriptor.gatt.client_characteristic_configuration.xml
@@ -124,8 +124,6 @@ void setupBLE() {
     pServer->setCallbacks(new MyServerCallbacks());
 
     BLEService *pService = pServer->createService(SERVICE_UUID);
-    // Ajoutez les caractéristiques et les descripteurs comme dans `setup()`
-    // ...
     pService->start();
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
     pAdvertising->start();
