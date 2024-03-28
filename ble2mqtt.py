@@ -12,12 +12,12 @@ with open('config.yaml', 'r') as file:
 MQTT_BROKER = config['mqtt']['broker']
 MQTT_PORT = config['mqtt']['port']
 MQTT_TOPIC_SENSOR = config['mqtt']['topic_sensor']
-MQTT_TOPIC_LED_COMMAND = config['mqtt']['topic_led_command']
+MQTT_TOPIC_RELAY_COMMAND = config['mqtt']['topic_relay_command']
 
 # Configuration BLE
 DEVICE_NAME = config['ble']['device_name']
 SENSOR_CHARACTERISTIC_UUID = config['ble']['sensor_characteristic_uuid']
-LED_CHARACTERISTIC_UUID = config['ble']['led_characteristic_uuid']
+RELAY_CHARACTERISTIC_UUID = config['ble']['relay_characteristic_uuid']
 
 ble_client = None
 mqtt_client = None
@@ -25,15 +25,15 @@ exit_event = asyncio.Event()
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT Broker with result code", rc)
-    client.subscribe(MQTT_TOPIC_LED_COMMAND)
+    client.subscribe(MQTT_TOPIC_RELAY_COMMAND)
 
 async def handle_mqtt_message(client, userdata, message):
     global ble_client
-    if message.topic == MQTT_TOPIC_LED_COMMAND and ble_client is not None:
+    if message.topic == MQTT_TOPIC_RELAY_COMMAND and ble_client is not None:
         try:
             led_value = int(message.payload.decode())
-            print(f"Setting LED to {led_value}")
-            await ble_client.write_gatt_char(LED_CHARACTERISTIC_UUID, bytes([led_value]))
+            print(f"Setting RELAY to {relay_value}")
+            await ble_client.write_gatt_char(RELAY_CHARACTERISTIC_UUID, bytes([relay_value]))
         except Exception as e:
             print(f"Error writing to LED characteristic: {e}")
 
