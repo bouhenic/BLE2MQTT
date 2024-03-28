@@ -6,12 +6,12 @@
 
 BLEServer* pServer = NULL;
 BLECharacteristic* pSensorCharacteristic = NULL;
-BLECharacteristic* pLedCharacteristic = NULL;
+BLECharacteristic* pRelayCharacteristic = NULL;
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
 uint32_t value = 0;
 
-const int ledPin = 2; // Use the appropriate GPIO pin for your setup
+const int relayPin = 2; // Use the appropriate GPIO pin for your setup
 const int soilPin = 1;
 
 // Valeur du potentiomètre
@@ -22,7 +22,7 @@ int soilValue = 0;
 
 #define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
 #define SENSOR_CHARACTERISTIC_UUID "beb5483d-36e1-4688-b7f5-ea07361b26a8"
-#define LED_CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+#define RELAY_CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -35,18 +35,18 @@ class MyServerCallbacks: public BLEServerCallbacks {
 };
 
 class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
-    void onWrite(BLECharacteristic* pLedCharacteristic) {
-        auto value = pLedCharacteristic->getValue();
+    void onWrite(BLECharacteristic* pRelayCharacteristic) {
+        auto value = pRelayCharacteristic->getValue();
         if (value.length() > 0) {
             Serial.print("Characteristic event, written: ");
             Serial.println(static_cast<int>(value[0])); // Print the integer value
 
             int receivedValue = static_cast<int>(value[0]);
             if (receivedValue == 1) {
-                digitalWrite(ledPin, HIGH);
+                digitalWrite(relayPin, HIGH);
                 Serial.println("Trigger");
             } else {
-                digitalWrite(ledPin, LOW);
+                digitalWrite(relayPin, LOW);
                 Serial.println("No trigger");                
             }
         }
@@ -55,7 +55,7 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
 
 void setup() {
   Serial.begin(115200);
-  pinMode(ledPin, OUTPUT);
+  pinMode(relayPin, OUTPUT);
   pinMode(soilPin,INPUT_PULLUP);
 
   // Create the BLE Device
@@ -78,18 +78,18 @@ void setup() {
                     );
 
   // Create the ON button Characteristic
-  pLedCharacteristic = pService->createCharacteristic(
+  pRelayCharacteristic = pService->createCharacteristic(
                       LED_CHARACTERISTIC_UUID,
                       BLECharacteristic::PROPERTY_WRITE
                     );
 
   // Register the callback for the ON button characteristic
-  pLedCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
+  pRelayCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
 
   // https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.descriptor.gatt.client_characteristic_configuration.xml
   // Create a BLE Descriptor
   pSensorCharacteristic->addDescriptor(new BLE2902());
-  pLedCharacteristic->addDescriptor(new BLE2902());
+  pRelayCharacteristic->addDescriptor(new BLE2902());
 
   // Start the service
   pService->start();
