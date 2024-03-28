@@ -107,9 +107,7 @@ void loop() {
   if (deviceConnected) {
         pSensorCharacteristic->setValue(String(soilValue).c_str());
         pSensorCharacteristic->notify();
-        //value++;
         soilValue = analogRead(soilPin);
-        //Serial.println(soilValue);
         Serial.print("New value notified: ");
         Serial.println(soilValue);
         delay(6000); 
