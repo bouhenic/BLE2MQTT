@@ -2,9 +2,9 @@ mqtt:
   broker: 'localhost'
   port: 1883
   topic_sensor: 'ble/sensor'
-  topic_led_command: 'ble/led/command'
+  topic_led_command: 'ble/relay/command'
 
 ble:
   device_name: 'MyBleDevice'
   sensor_characteristic_uuid: 'beb5483d-36e1-4688-b7f5-ea07361b26a8'
-  led_characteristic_uuid: 'beb5483e-36e1-4688-b7f5-ea07361b26a8'
+  relay_characteristic_uuid: 'beb5483e-36e1-4688-b7f5-ea07361b26a8'
