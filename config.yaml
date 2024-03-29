@@ -2,7 +2,7 @@ mqtt:
   broker: 'localhost'
   port: 1883
   topic_sensor: 'ble/sensor'
-  topic_led_command: 'ble/relay/command'
+  topic_relay_command: 'ble/relay/command'
 
 ble:
   device_name: 'MyBleDevice'
