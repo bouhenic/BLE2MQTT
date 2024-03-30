@@ -79,7 +79,7 @@ void setup() {
 
   // Create the ON button Characteristic
   pRelayCharacteristic = pService->createCharacteristic(
-                      LED_CHARACTERISTIC_UUID,
+                      RELAY_CHARACTERISTIC_UUID,
                       BLECharacteristic::PROPERTY_WRITE
                     );
 
