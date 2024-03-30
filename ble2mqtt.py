@@ -31,7 +31,7 @@ async def handle_mqtt_message(client, userdata, message):
     global ble_client
     if message.topic == MQTT_TOPIC_RELAY_COMMAND and ble_client is not None:
         try:
-            led_value = int(message.payload.decode())
+            relay_value = int(message.payload.decode())
             print(f"Setting RELAY to {relay_value}")
             await ble_client.write_gatt_char(RELAY_CHARACTERISTIC_UUID, bytes([relay_value]))
         except Exception as e:
