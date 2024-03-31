@@ -7,7 +7,7 @@ The project includes:
 
 #### SEQUENCE DIAGRAM
 
-![Alt text](seq.svg "Optionnel : sequence diagram")
+![Alt text](seq1.svg "Optionnel : sequence diagram")
 
 
 
