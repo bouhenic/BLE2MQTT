@@ -9,6 +9,10 @@ The project includes:
 
 ![Alt text](seq1.svg "Optionnel : sequence diagram")
 
+#### SEQUENCE DIAGRAM PYTHON BLE2MQTT GATEWAY
+
+![Alt text](seq2.svg "Optionnel : sequence diagram")
+
 
 
 
