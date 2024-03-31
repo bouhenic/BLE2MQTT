@@ -35,7 +35,7 @@ async def handle_mqtt_message(client, userdata, message):
             print(f"Setting RELAY to {relay_value}")
             await ble_client.write_gatt_char(RELAY_CHARACTERISTIC_UUID, bytes([relay_value]))
         except Exception as e:
-            print(f"Error writing to LED characteristic: {e}")
+            print(f"Error writing to RELAY characteristic: {e}")
 
 def setup_mqtt(loop):
     global mqtt_client
