@@ -5,7 +5,7 @@ The project includes:
 - The Arduino code for the BLE device.
 - The code for a BLE2MQTT gateway in Python.
 
-#### SEQUENCE DIAGRAM
+#### SEQUENCE DIAGRAM ESP32
 
 ![Alt text](seq1.svg "Optionnel : sequence diagram")
 
